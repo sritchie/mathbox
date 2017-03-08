@@ -24,10 +24,8 @@ class RenderTarget
     make = () => new THREE.WebGLRenderTarget @width, @height, @options
 
     @targets = (make() for i in [0...@buffers])
-    @reads   = (make() for i in [0...@buffers])
-    @write   = make()
-
-    @index = 0
+    @reads   = (target.texture for target in @targets)
+    @write   = @targets[@buffers-1]
 
     # Texture access uniforms
     @uniforms =
@@ -42,18 +40,10 @@ class RenderTarget
         value: @reads
 
   cycle: () ->
-    keys = ['__webglTexture', '__webglFramebuffer', '__webglRenderbuffer']
-    buffers = @buffers
-
-    copy = (a, b) ->
-      b[key] = a[key] for key in keys
-      null
-    add  = (i, j) -> (i + j + buffers * 2) % buffers
-
-    copy @write, @targets[@index]
-    copy @targets[add @index, -i], read for read, i in @reads
-    @index = add @index, 1
-    copy @targets[@index], @write
+    @targets.unshift(@targets.pop())
+    @write = @targets[@buffers-1]
+    @reads.unshift(@reads.pop())
+    @uniforms.dataTexture.value = @reads[0]
 
   warmup: (callback) ->
     for i in [0...@buffers]

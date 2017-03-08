@@ -46,8 +46,16 @@ class Base extends Renderable
 		uniform vec3 cameraPosition;
     """
 
-    material = new THREE.RawShaderMaterial options
-    material[key] = options[key] for key in ['vertexGraph', 'fragmentGraph']
+    shaderOptions = {}
+    Object.assign(shaderOptions, options)
+    delete shaderOptions.attributes
+    delete shaderOptions.varyings
+    delete shaderOptions.inspect
+    delete shaderOptions.vertexGraph
+    delete shaderOptions.fragmentGraph
+
+    material = new THREE.RawShaderMaterial shaderOptions
+    material[key] = options[key] for key in ['vertexGraph', 'fragmentGraph', 'inspect']
     material.vertexShader   = [vertexPrefix,   material.vertexShader  ].join '\n'
     material.fragmentShader = [fragmentPrefix, material.fragmentShader].join '\n'
     material

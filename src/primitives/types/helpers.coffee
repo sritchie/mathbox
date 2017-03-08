@@ -338,8 +338,8 @@ helpers =
         if (camera = root?.getCamera())
           m = camera.projectionMatrix
           # Measure top to bottom
-          top   .set(0, -.5, 1).applyProjection(m)
-          bottom.set(0,  .5, 1).applyProjection(m)
+          top   .set(0, -.5, 1).applyMatrix4(m)
+          bottom.set(0,  .5, 1).applyMatrix4(m)
           top.sub bottom
           measure = top.y
 

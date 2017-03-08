@@ -23,13 +23,14 @@ class DataTexture
 
   build: (options) ->
     gl = @gl
+    state = gl._renderer.state
 
     # Make GL texture
     @texture = gl.createTexture()
     @format  = [null, gl.LUMINANCE, gl.LUMINANCE_ALPHA, gl.RGB, gl.RGBA][@channels]
     @format3 = [null, THREE.LuminanceFormat, THREE.LuminanceAlphaFormat, THREE.RGBFormat, THREE.RGBAFormat][@channels]
 
-    gl.bindTexture   gl.TEXTURE_2D, @texture
+    state.bindTexture   gl.TEXTURE_2D, @texture
     gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_WRAP_S,     gl.CLAMP_TO_EDGE
     gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_WRAP_T,     gl.CLAMP_TO_EDGE
     gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, @minFilter
@@ -50,8 +51,10 @@ class DataTexture
       options.magFilter)
 
     # Pre-init texture to trick WebGLRenderer
-    @textureObject.__webglInit     = true
-    @textureObject.__webglTexture  = @texture
+    @textureProperties = gl._renderer.properties.get(@textureObject)
+    @textureProperties.__webglInit     = true
+    @textureProperties.__webglTexture  = @texture
+
     @textureObject.format          = @format3
     @textureObject.type            = THREE.FloatType
     @textureObject.unpackAlignment = 1
@@ -69,9 +72,10 @@ class DataTexture
 
   write: (data, x, y, w, h) ->
     gl = @gl
+    state = gl._renderer.state
 
     # Write to rectangle
-    gl.bindTexture gl.TEXTURE_2D, @texture
+    state.bindTexture gl.TEXTURE_2D, @texture
     gl.pixelStorei gl.UNPACK_ALIGNMENT, 1
     gl.pixelStorei gl.UNPACK_FLIP_Y_WEBGL, false
     gl.pixelStorei gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false
@@ -80,8 +84,9 @@ class DataTexture
   dispose: () ->
     @gl.deleteTexture @texture
 
-    @textureObject.__webglInit    = false
-    @textureObject.__webglTexture = null
+    @textureProperties.__webglInit    = false
+    @textureProperties.__webglTexture = null
+    @textureProperties = null
     @textureObject = @texture = null
 
 module.exports = DataTexture

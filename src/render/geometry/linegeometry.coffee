@@ -35,7 +35,7 @@ class LineGeometry extends ClipGeometry
     quads     = segments * strips * ribbons * layers
     triangles = quads    * 2
 
-    @addAttribute 'index',     new THREE.BufferAttribute new  Uint16Array(triangles * 3), 1
+    @setIndex     new THREE.BufferAttribute new  Uint16Array(triangles * 3), 1
     @addAttribute 'position4', new THREE.BufferAttribute new Float32Array(points * 4),    4
     @addAttribute 'line',      new THREE.BufferAttribute new Float32Array(points * 2),    2
     @addAttribute 'strip',     new THREE.BufferAttribute new Float32Array(points * 2),    2

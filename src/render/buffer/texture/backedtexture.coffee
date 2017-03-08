@@ -24,7 +24,8 @@ class BackedTexture extends DataTexture
     @data   = new @ctor @n
 
     gl = @gl
-    gl.bindTexture gl.TEXTURE_2D, @texture
+    state = gl._renderer.state
+    state.bindTexture gl.TEXTURE_2D, @texture
     gl.pixelStorei gl.UNPACK_ALIGNMENT, 1
     gl.texImage2D  gl.TEXTURE_2D, 0, @format, width, height, 0, @format, @type, @data
 

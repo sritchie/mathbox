@@ -76,7 +76,7 @@ module.exports = self = {
 
   apply: function ( object ) {
 
-    THREE.EventDispatcher.prototype.apply(object);
+    Object.assign( object, THREE.EventDispatcher.prototype );
 
     object.trigger     = self._trigger;
     object.triggerOnce = self._triggerOnce;

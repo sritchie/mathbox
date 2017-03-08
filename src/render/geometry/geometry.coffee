@@ -11,7 +11,7 @@ class Geometry extends THREE.BufferGeometry
   constructor: () ->
     THREE.BufferGeometry.call @
     @uniforms ?= {}
-    @offsets  ?= []
+    @groups  ?= []
 
     @tock = tick() if debug
     @chunked = false
@@ -29,7 +29,10 @@ class Geometry extends THREE.BufferGeometry
     quads = dims.reduce (a, b) -> a * b
 
   _emitter: (name) ->
-    attribute  = @attributes[name]
+    if name == 'index'
+      attribute = @getIndex()
+    else
+      attribute = @attributes[name]
     dimensions = attribute.itemSize
     array      = attribute.array
 
@@ -133,10 +136,10 @@ class Geometry extends THREE.BufferGeometry
 
   _offsets: (offsets) ->
     if !@chunked
-      @offsets = offsets
+      @groups = offsets
     else
       chunks = @chunks
-      out    = @offsets
+      out    = @groups
       out.length = null
 
       for offset in offsets
