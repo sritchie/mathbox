@@ -33,11 +33,9 @@ class SpriteGeometry extends ClipGeometry
     points    = samples * 4
     triangles = samples * 2
 
-    @setIndex     new THREE.BufferAttribute new  Uint16Array(triangles * 3), 1
+    @setIndex     new THREE.BufferAttribute new  Uint32Array(triangles * 3), 1
     @addAttribute 'position4', new THREE.BufferAttribute new Float32Array(points * 4),    4
     @addAttribute 'sprite',    new THREE.BufferAttribute new Float32Array(points * 2),    2
-
-    @_autochunk()
 
     index    = @_emitter 'index'
     position = @_emitter 'position4'
