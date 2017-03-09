@@ -12801,8 +12801,8 @@ helpers = {
           measure = 1;
           if ((camera = typeof root !== "undefined" && root !== null ? root.getCamera() : void 0)) {
             m = camera.projectionMatrix;
-            top.set(0, -.5, 1).applyProjection(m);
-            bottom.set(0, .5, 1).applyProjection(m);
+            top.set(0, -.5, 1).applyMatrix4(m);
+            bottom.set(0, .5, 1).applyMatrix4(m);
             top.sub(bottom);
             measure = top.y;
           }
@@ -20547,7 +20547,7 @@ Atlas = (function(superClass) {
   Atlas.prototype.build = function(options) {
     var klass;
     this.klass = klass = this.backed ? BackedTexture : DataTexture;
-    this.texture = new klass(this.gl, this.width, this.height, this.channels, options);
+    this.texture = new klass(this.renderer, this.width, this.height, this.channels, options);
     this.uniforms = {
       dataPointer: {
         type: 'v2',
@@ -20814,7 +20814,7 @@ DataBuffer = (function(superClass) {
 
   DataBuffer.prototype.build = function(options) {
     this.data = new Float32Array(this.samples * this.channels * this.items);
-    this.texture = new DataTexture(this.gl, this.items * this.width, this.height * this.depth, this.channels, options);
+    this.texture = new DataTexture(this.renderer, this.items * this.width, this.height * this.depth, this.channels, options);
     this.filled = 0;
     this.used = 0;
     this._adopt(this.texture.uniforms);
@@ -22001,13 +22001,13 @@ Contains local copy of its data to allow quick resizing without gl.copyTexImage2
 BackedTexture = (function(superClass) {
   extend(BackedTexture, superClass);
 
-  function BackedTexture(gl, width, height, channels, options) {
-    BackedTexture.__super__.constructor.call(this, gl, width, height, channels, options);
+  function BackedTexture(renderer, width, height, channels, options) {
+    BackedTexture.__super__.constructor.call(this, renderer, width, height, channels, options);
     this.data = new this.ctor(this.n);
   }
 
   BackedTexture.prototype.resize = function(width, height) {
-    var gl, old, oldHeight, oldWidth;
+    var gl, old, oldHeight, oldWidth, state;
     old = this.data;
     oldWidth = this.width;
     oldHeight = this.height;
@@ -22016,7 +22016,8 @@ BackedTexture = (function(superClass) {
     this.n = width * height * this.channels;
     this.data = new this.ctor(this.n);
     gl = this.gl;
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    state = this.renderer.state;
+    state.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.texImage2D(gl.TEXTURE_2D, 0, this.format, width, height, 0, this.format, this.type, this.data);
     this.uniforms.dataResolution.value.set(1 / width, 1 / height);
@@ -22079,14 +22080,14 @@ Allows partial updates via subImage.
  */
 
 DataTexture = (function() {
-  function DataTexture(gl1, width, height, channels, options) {
+  function DataTexture(renderer, width, height, channels, options) {
     var gl, magFilter, minFilter, ref, ref1, ref2, type;
-    this.gl = gl1;
+    this.renderer = renderer;
     this.width = width;
     this.height = height;
     this.channels = channels;
     this.n = this.width * this.height * this.channels;
-    gl = this.gl;
+    gl = this.gl = this.renderer.context;
     minFilter = (ref = options.minFilter) != null ? ref : THREE.NearestFilter;
     magFilter = (ref1 = options.magFilter) != null ? ref1 : THREE.NearestFilter;
     type = (ref2 = options.type) != null ? ref2 : THREE.FloatType;
@@ -22098,12 +22099,13 @@ DataTexture = (function() {
   }
 
   DataTexture.prototype.build = function(options) {
-    var gl;
+    var gl, state;
     gl = this.gl;
+    state = this.renderer.state;
     this.texture = gl.createTexture();
     this.format = [null, gl.LUMINANCE, gl.LUMINANCE_ALPHA, gl.RGB, gl.RGBA][this.channels];
     this.format3 = [null, THREE.LuminanceFormat, THREE.LuminanceAlphaFormat, THREE.RGBFormat, THREE.RGBAFormat][this.channels];
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    state.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.minFilter);
@@ -22112,8 +22114,9 @@ DataTexture = (function() {
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.texImage2D(gl.TEXTURE_2D, 0, this.format, this.width, this.height, 0, this.format, this.type, this.data);
     this.textureObject = new THREE.Texture(new Image(), THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, options.minFilter, options.magFilter);
-    this.textureObject.__webglInit = true;
-    this.textureObject.__webglTexture = this.texture;
+    this.textureProperties = this.renderer.properties.get(this.textureObject);
+    this.textureProperties.__webglInit = true;
+    this.textureProperties.__webglTexture = this.texture;
     this.textureObject.format = this.format3;
     this.textureObject.type = THREE.FloatType;
     this.textureObject.unpackAlignment = 1;
@@ -22132,9 +22135,10 @@ DataTexture = (function() {
   };
 
   DataTexture.prototype.write = function(data, x, y, w, h) {
-    var gl;
+    var gl, state;
     gl = this.gl;
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    state = this.renderer.state;
+    state.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
@@ -22143,8 +22147,9 @@ DataTexture = (function() {
 
   DataTexture.prototype.dispose = function() {
     this.gl.deleteTexture(this.texture);
-    this.textureObject.__webglInit = false;
-    this.textureObject.__webglTexture = null;
+    this.textureProperties.__webglInit = false;
+    this.textureProperties.__webglTexture = null;
+    this.textureProperties = null;
     return this.textureObject = this.texture = null;
   };
 
@@ -22192,30 +22197,31 @@ RenderTarget = (function() {
   }
 
   RenderTarget.prototype.build = function() {
-    var i, make;
+    var i, make, target;
     make = (function(_this) {
       return function() {
         return new THREE.WebGLRenderTarget(_this.width, _this.height, _this.options);
       };
     })(this);
     this.targets = (function() {
-      var k, ref, results;
+      var j, ref, results;
       results = [];
-      for (i = k = 0, ref = this.buffers; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
+      for (i = j = 0, ref = this.buffers; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
         results.push(make());
       }
       return results;
     }).call(this);
     this.reads = (function() {
-      var k, ref, results;
+      var j, len, ref, results;
+      ref = this.targets;
       results = [];
-      for (i = k = 0, ref = this.buffers; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
-        results.push(make());
+      for (j = 0, len = ref.length; j < len; j++) {
+        target = ref[j];
+        results.push(target.texture);
       }
       return results;
     }).call(this);
-    this.write = make();
-    this.index = 0;
+    this.write = this.targets[this.buffers - 1];
     return this.uniforms = {
       dataResolution: {
         type: 'v2',
@@ -22233,34 +22239,16 @@ RenderTarget = (function() {
   };
 
   RenderTarget.prototype.cycle = function() {
-    var add, buffers, copy, i, k, keys, len, read, ref;
-    keys = ['__webglTexture', '__webglFramebuffer', '__webglRenderbuffer'];
-    buffers = this.buffers;
-    copy = function(a, b) {
-      var k, key, len;
-      for (k = 0, len = keys.length; k < len; k++) {
-        key = keys[k];
-        b[key] = a[key];
-      }
-      return null;
-    };
-    add = function(i, j) {
-      return (i + j + buffers * 2) % buffers;
-    };
-    copy(this.write, this.targets[this.index]);
-    ref = this.reads;
-    for (i = k = 0, len = ref.length; k < len; i = ++k) {
-      read = ref[i];
-      copy(this.targets[add(this.index, -i)], read);
-    }
-    this.index = add(this.index, 1);
-    return copy(this.targets[this.index], this.write);
+    this.targets.unshift(this.targets.pop());
+    this.write = this.targets[this.buffers - 1];
+    this.reads.unshift(this.reads.pop());
+    return this.uniforms.dataTexture.value = this.reads[0];
   };
 
   RenderTarget.prototype.warmup = function(callback) {
-    var i, k, ref, results;
+    var i, j, ref, results;
     results = [];
-    for (i = k = 0, ref = this.buffers; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
+    for (i = j = 0, ref = this.buffers; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
       callback(this.write);
       results.push(this.cycle());
     }
@@ -22268,10 +22256,10 @@ RenderTarget = (function() {
   };
 
   RenderTarget.prototype.dispose = function() {
-    var k, len, ref, target;
+    var j, len, ref, target;
     ref = this.targets;
-    for (k = 0, len = ref.length; k < len; k++) {
-      target = ref[k];
+    for (j = 0, len = ref.length; j < len; j++) {
+      target = ref[j];
       target.dispose();
     }
     return this.targets = this.reads = this.write = null;
@@ -22522,11 +22510,10 @@ ArrowGeometry = (function(superClass) {
     arrows = strips * ribbons * layers;
     points = (sides + 2) * arrows;
     triangles = (sides * 2) * arrows;
-    this.addAttribute('index', new THREE.BufferAttribute(new Uint16Array(triangles * 3), 1));
+    this.setIndex(new THREE.BufferAttribute(new Uint32Array(triangles * 3), 1));
     this.addAttribute('position4', new THREE.BufferAttribute(new Float32Array(points * 4), 4));
     this.addAttribute('arrow', new THREE.BufferAttribute(new Float32Array(points * 3), 3));
     this.addAttribute('attach', new THREE.BufferAttribute(new Float32Array(points * 2), 2));
-    this._autochunk();
     index = this._emitter('index');
     position = this._emitter('position4');
     arrow = this._emitter('arrow');
@@ -22742,9 +22729,8 @@ FaceGeometry = (function(superClass) {
     samples = width * height * depth;
     points = items * samples;
     triangles = sides * samples;
-    this.addAttribute('index', new THREE.BufferAttribute(new Uint16Array(triangles * 3), 1));
+    this.setIndex(new THREE.BufferAttribute(new Uint32Array(triangles * 3), 1));
     this.addAttribute('position4', new THREE.BufferAttribute(new Float32Array(points * 4), 4));
-    this._autochunk();
     index = this._emitter('index');
     position = this._emitter('position4');
     base = 0;
@@ -22823,14 +22809,9 @@ Geometry = (function(superClass) {
     if (this.uniforms == null) {
       this.uniforms = {};
     }
-    if (this.offsets == null) {
-      this.offsets = [];
+    if (this.groups == null) {
+      this.groups = [];
     }
-    if (debug) {
-      this.tock = tick();
-    }
-    this.chunked = false;
-    this.limit = 0xFFFF;
   }
 
   Geometry.prototype._reduce = function(dims, maxs) {
@@ -22853,7 +22834,11 @@ Geometry = (function(superClass) {
 
   Geometry.prototype._emitter = function(name) {
     var array, attribute, dimensions, four, offset, one, three, two;
-    attribute = this.attributes[name];
+    if (name === 'index') {
+      attribute = this.index;
+    } else {
+      attribute = this.attributes[name];
+    }
     dimensions = attribute.itemSize;
     array = attribute.array;
     offset = 0;
@@ -22878,127 +22863,10 @@ Geometry = (function(superClass) {
     return [null, one, two, three, four][dimensions];
   };
 
-  Geometry.prototype._autochunk = function() {
-    var array, attribute, indexed, name, numItems, ref;
-    indexed = this.attributes.index;
-    ref = this.attributes;
-    for (name in ref) {
-      attribute = ref[name];
-      if (name !== 'index' && indexed) {
-        numItems = attribute.array.length / attribute.itemSize;
-        if (numItems > this.limit) {
-          this.chunked = true;
-        }
-        break;
-      }
-    }
-    if (this.chunked && !indexed.u16) {
-      indexed.u16 = array = indexed.array;
-      return indexed.array = new Uint32Array(array.length);
-    }
-  };
-
-  Geometry.prototype._finalize = function() {
-    var attrib;
-    if (!this.chunked) {
-      return;
-    }
-    attrib = this.attributes.index;
-    this.chunks = this._chunks(attrib.array, this.limit);
-    this._chunkify(attrib, this.chunks);
-    if (debug) {
-      return this.tock(this.constructor.name);
-    }
-  };
-
-  Geometry.prototype._chunks = function(array, limit) {
-    var a, b, chunks, end, i, j, j1, j2, j3, jmax, jmin, last, n, o, push, ref, start;
-    chunks = [];
-    last = 0;
-    start = array[0];
-    end = array[0];
-    push = function(i) {
-      var _count, _end, _start;
-      _start = last * 3;
-      _end = i * 3;
-      _count = _end - _start;
-      return chunks.push({
-        index: start,
-        start: _start,
-        count: _count,
-        end: _end
-      });
-    };
-    n = Math.floor(array.length / 3);
-    o = 0;
-    for (i = j = 0, ref = n; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
-      j1 = array[o++];
-      j2 = array[o++];
-      j3 = array[o++];
-      jmin = Math.min(j1, j2, j3);
-      jmax = Math.max(j1, j2, j3);
-      a = Math.min(start, jmin);
-      b = Math.max(end, jmax);
-      if (b - a > limit) {
-        push(i);
-        a = jmin;
-        b = jmax;
-        last = i;
-      }
-      start = a;
-      end = b;
-    }
-    push(n);
-    return chunks;
-  };
-
-  Geometry.prototype._chunkify = function(attrib, chunks) {
-    var chunk, from, i, j, k, len, offset, ref, ref1, to;
-    if (!attrib.u16) {
-      return;
-    }
-    from = attrib.array;
-    to = attrib.u16;
-    for (j = 0, len = chunks.length; j < len; j++) {
-      chunk = chunks[j];
-      offset = chunk.index;
-      for (i = k = ref = chunk.start, ref1 = chunk.end; ref <= ref1 ? k < ref1 : k > ref1; i = ref <= ref1 ? ++k : --k) {
-        to[i] = from[i] - offset;
-      }
-    }
-    attrib.array = attrib.u16;
-    return delete attrib.u16;
-  };
+  Geometry.prototype._finalize = function() {};
 
   Geometry.prototype._offsets = function(offsets) {
-    var _end, _start, chunk, chunks, end, j, k, len, len1, offset, out, start;
-    if (!this.chunked) {
-      this.offsets = offsets;
-    } else {
-      chunks = this.chunks;
-      out = this.offsets;
-      out.length = null;
-      for (j = 0, len = offsets.length; j < len; j++) {
-        offset = offsets[j];
-        start = offset.start;
-        end = offset.count - start;
-        for (k = 0, len1 = chunks.length; k < len1; k++) {
-          chunk = chunks[k];
-          _start = chunk.start;
-          _end = chunk.end;
-          if (start <= _start && end > _start || start < _end && end >= _end || start > _start && end < _end) {
-            _start = Math.max(start, _start);
-            _end = Math.min(end, _end);
-            out.push({
-              index: chunk.index,
-              start: _start,
-              count: _end - _start
-            });
-          }
-        }
-      }
-    }
-    return null;
+    return this.groups = offsets;
   };
 
   return Geometry;
@@ -23067,14 +22935,13 @@ LineGeometry = (function(superClass) {
     points = vertices * strips * ribbons * layers * 2;
     quads = segments * strips * ribbons * layers;
     triangles = quads * 2;
-    this.addAttribute('index', new THREE.BufferAttribute(new Uint16Array(triangles * 3), 1));
+    this.setIndex(new THREE.BufferAttribute(new Uint32Array(triangles * 3), 1));
     this.addAttribute('position4', new THREE.BufferAttribute(new Float32Array(points * 4), 4));
     this.addAttribute('line', new THREE.BufferAttribute(new Float32Array(points * 2), 2));
     this.addAttribute('strip', new THREE.BufferAttribute(new Float32Array(points * 2), 2));
     if (detail > 1) {
       this.addAttribute('joint', new THREE.BufferAttribute(new Float32Array(points), 1));
     }
-    this._autochunk();
     index = this._emitter('index');
     position = this._emitter('position4');
     line = this._emitter('line');
@@ -23312,10 +23179,9 @@ SpriteGeometry = (function(superClass) {
     samples = items * width * height * depth;
     points = samples * 4;
     triangles = samples * 2;
-    this.addAttribute('index', new THREE.BufferAttribute(new Uint16Array(triangles * 3), 1));
+    this.setIndex(new THREE.BufferAttribute(new Uint32Array(triangles * 3), 1));
     this.addAttribute('position4', new THREE.BufferAttribute(new Float32Array(points * 4), 4));
     this.addAttribute('sprite', new THREE.BufferAttribute(new Float32Array(points * 2), 2));
-    this._autochunk();
     index = this._emitter('index');
     position = this._emitter('position4');
     sprite = this._emitter('sprite');
@@ -23412,10 +23278,9 @@ StripGeometry = (function(superClass) {
     samples = width * height * depth;
     points = items * samples;
     triangles = sides * samples;
-    this.addAttribute('index', new THREE.BufferAttribute(new Uint16Array(triangles * 3), 1));
+    this.setIndex(new THREE.BufferAttribute(new Uint32Array(triangles * 3), 1));
     this.addAttribute('position4', new THREE.BufferAttribute(new Float32Array(points * 4), 4));
     this.addAttribute('strip', new THREE.BufferAttribute(new Float32Array(points * 3), 3));
-    this._autochunk();
     index = this._emitter('index');
     position = this._emitter('position4');
     strip = this._emitter('strip');
@@ -23528,10 +23393,9 @@ SurfaceGeometry = (function(superClass) {
     points = width * height * surfaces * layers;
     quads = segmentsX * segmentsY * surfaces * layers;
     triangles = quads * 2;
-    this.addAttribute('index', new THREE.BufferAttribute(new Uint16Array(triangles * 3), 1));
+    this.setIndex(new THREE.BufferAttribute(new Uint32Array(triangles * 3), 1));
     this.addAttribute('position4', new THREE.BufferAttribute(new Float32Array(points * 4), 4));
     this.addAttribute('surface', new THREE.BufferAttribute(new Float32Array(points * 2), 2));
-    this._autochunk();
     index = this._emitter('index');
     position = this._emitter('position4');
     surface = this._emitter('surface');
@@ -23783,12 +23647,19 @@ Base = (function(superClass) {
   };
 
   Base.prototype._material = function(options) {
-    var fragmentPrefix, i, key, len, material, precision, ref, vertexPrefix;
+    var fragmentPrefix, i, key, len, material, precision, ref, shaderOptions, vertexPrefix;
     precision = this.renderer.getPrecision();
     vertexPrefix = "    precision " + precision + " float;\n    precision " + precision + " int;\nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 cameraPosition;";
     fragmentPrefix = "    precision " + precision + " float;\n    precision " + precision + " int;\nuniform mat4 viewMatrix;\nuniform vec3 cameraPosition;";
-    material = new THREE.RawShaderMaterial(options);
-    ref = ['vertexGraph', 'fragmentGraph'];
+    shaderOptions = {};
+    Object.assign(shaderOptions, options);
+    delete shaderOptions.attributes;
+    delete shaderOptions.varyings;
+    delete shaderOptions.inspect;
+    delete shaderOptions.vertexGraph;
+    delete shaderOptions.fragmentGraph;
+    material = new THREE.RawShaderMaterial(shaderOptions);
+    ref = ['vertexGraph', 'fragmentGraph', 'inspect'];
     for (i = 0, len = ref.length; i < len; i++) {
       key = ref[i];
       material[key] = options[key];
@@ -25812,7 +25683,7 @@ module.exports = self = {
 
   apply: function ( object ) {
 
-    THREE.EventDispatcher.prototype.apply(object);
+    Object.assign( object, THREE.EventDispatcher.prototype );
 
     object.trigger     = self._trigger;
     object.triggerOnce = self._triggerOnce;
