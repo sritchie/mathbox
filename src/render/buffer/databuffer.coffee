@@ -35,7 +35,7 @@ class DataBuffer extends Buffer
 
   build: (options) ->
     @data    = new Float32Array @samples * @channels * @items
-    @texture = new DataTexture  @gl, @items * @width, @height * @depth, @channels, options
+    @texture = new DataTexture  @renderer, @items * @width, @height * @depth, @channels, options
     @filled  = 0
     @used    = 0
 

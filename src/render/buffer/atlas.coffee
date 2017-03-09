@@ -29,7 +29,7 @@ class Atlas extends Renderable
 
   build: (options) ->
     @klass   = klass = if @backed then BackedTexture else DataTexture
-    @texture = new klass @gl, @width, @height, @channels, options
+    @texture = new klass @renderer, @width, @height, @channels, options
 
     @uniforms =
       dataPointer:

@@ -52,9 +52,6 @@ THREE.Bootstrap.registerPlugin 'mathbox',
 
         @context = new Context three.renderer, scene, camera
 
-        # HACK: make renderer visible from gl context to allow three's tricking
-        three.renderer.context._renderer = three.renderer
-
         # Enable handy destructuring
         @context.api.three   = three.three   = three
         @context.api.mathbox = three.mathbox = @context.api

@@ -6,10 +6,10 @@ Manually allocated GL texture for data streaming.
 Allows partial updates via subImage.
 ###
 class DataTexture
-  constructor: (@gl, @width, @height, @channels, options) ->
+  constructor: (@renderer, @width, @height, @channels, options) ->
     @n = @width * @height * @channels
 
-    gl = @gl
+    gl = @gl = @renderer.context
     minFilter = options.minFilter ? THREE.NearestFilter
     magFilter = options.magFilter ? THREE.NearestFilter
     type      = options.type      ? THREE.FloatType
@@ -23,7 +23,7 @@ class DataTexture
 
   build: (options) ->
     gl = @gl
-    state = gl._renderer.state
+    state = @renderer.state
 
     # Make GL texture
     @texture = gl.createTexture()
@@ -51,7 +51,7 @@ class DataTexture
       options.magFilter)
 
     # Pre-init texture to trick WebGLRenderer
-    @textureProperties = gl._renderer.properties.get(@textureObject)
+    @textureProperties = @renderer.properties.get(@textureObject)
     @textureProperties.__webglInit     = true
     @textureProperties.__webglTexture  = @texture
 
@@ -72,7 +72,7 @@ class DataTexture
 
   write: (data, x, y, w, h) ->
     gl = @gl
-    state = gl._renderer.state
+    state = @renderer.state
 
     # Write to rectangle
     state.bindTexture gl.TEXTURE_2D, @texture
