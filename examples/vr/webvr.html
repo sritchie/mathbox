@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MathBox - Empty</title>
+  <script src="../../build/mathbox-bundle.js"></script>
+  <script src="webvr.js"></script>
+
+  <link rel="stylesheet" href="../../build/mathbox.css">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+</head>
+<body>
+  <script>
+    "use strict";
+  
+    var mathbox = mathBox({
+      plugins: ['core', 'controls', 'mathbox', 'stats', 'webvr'],
+      controls: { klass: THREE.OrbitControls },
+      webvr: { standing: true },
+    });
+
+    var three = mathbox.three;
+    three.renderer.setClearColor(new THREE.Color(0xcccccc), 1.0);
+    three.camera.near = 0.1;
+    three.camera.position.set(1, 1, 1);
+
+    // Attaching some geometry to controllers.
+    var geometry = new THREE.ConeBufferGeometry( 0.02, 0.08, 8 );
+    var material = new THREE.MeshBasicMaterial( {color: 0x222222, wireframe: true} );
+    var cone = new THREE.Mesh( geometry, material );
+    cone.rotation.set(-Math.PI/2, 0, 0);
+    three.vr.controller0.add(cone.clone());
+    three.vr.controller1.add(cone.clone());
+
+    mathbox.set({scale:800})
+    var view = mathbox.cartesian().grid({axes:[1,3]});
+
+    view.area({width:100, height:50, live:false, channels:3, expr:(emit)=>{
+        emit(Math.random()*2-1, Math.random()*2, Math.random()*2-1);
+    }}).shader({code:`
+      uniform float time;
+      vec4 sample(vec4 p);
+      vec4 main(vec4 p) {
+        float t = time + p.x*100.0;
+        return sample(p)+vec4(sin(t), sin(t*1.1), sin(t*1.2), 0.0)*0.02;
+      }
+    `}, {time:(t)=>t}).resample()
+    .point({color:"#77D"})
+
+
+    function createControllerView(controller) {
+      var view = mathbox.cartesian({scale:[0.1, 0.1, 0.1]}, {
+          // using "getWorldPosition" instead of "position" because
+          // of the bug in ViveController.js
+          position: ()=>controller.getWorldPosition(),
+          quaternion: ()=>controller.getWorldQuaternion(),
+      });
+      view.grid()
+        .transform({}, {position:()=>{
+           var gp = controller.getGamepad();
+           if (gp != null) {
+             var a = gp.axes;
+             // axes position is controlled by thumbstick, trigger and grip
+             return [a[0], a[1], gp.buttons[1].value-gp.buttons[2].value, 0];
+           }
+         }})
+          .axis({axis:1, color:"#B66"})
+          .axis({axis:2, color:"#6B6"})
+          .axis({axis:3, color:"#66B"});
+      // controller label + button states
+      view.array({channels:3, data:[0,0,-1]})
+        .text({}, {data:()=>{
+          var gp = controller.getGamepad();
+          if (gp == null) return ['null'];
+          var s = gp.id+' ';
+          for (var i=0; i<gp.buttons.length; ++i) {
+            var b = gp.buttons[i];
+            s += b.pressed ? 'P' : (b.touched ? 't' : '.');
+          }
+          return [s];
+        }}).label({depth:0.5});
+      
+      return view;
+    }
+
+    createControllerView(three.vr.controller0);
+
+    var right = createControllerView(three.vr.controller1);
+    // We can attach some mathbox objects to the controller
+    var x=0, y=0, z=0;
+    right.array({width:2000, channels:3, live:false, expr:(emit)=>{
+      emit(x, y, z);
+      x += Math.random()*0.05-0.025;
+      y += Math.random()*0.05-0.025;
+      z -= 0.005;
+    }})
+      .point({'color':"#a55", size:1.0})
+      .line({'join': 'bevel', width:1.0});
+
+
+    
+  </script>
+</body>
+</html>
