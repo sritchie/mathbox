@@ -33,6 +33,9 @@ var vendor = [
   'vendor/threestrap/vendor/controls/OrbitControls.js',
   'vendor/threestrap/vendor/controls/DeviceOrientationControls.js',
   'vendor/threestrap/vendor/controls/TrackBallControls.js',
+  'vendor/threestrap/vendor/effects/VREffect.js',
+  'vendor/threestrap/vendor/vr/WebVR.js',
+  'vendor/threestrap/vendor/vr/ViveController.js',
 ];
 
 var css = [
