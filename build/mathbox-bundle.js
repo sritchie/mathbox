@@ -16607,7 +16607,7 @@
 
 			prefixVertex = [
 
-	        
+
 				'precision ' + parameters.precision + ' float;',
 				'precision ' + parameters.precision + ' int;',
 
@@ -19782,7 +19782,7 @@
 			}
 
 			scope.numPlanes = nPlanes;
-			
+
 			return dstArray;
 
 		}
@@ -57318,7 +57318,7 @@ var PSEUDOSTART = 'pseudo-start'
 function tokenize() {
   var escaped = false
     , gathered = []
-    , state = READY 
+    , state = READY
     , data = []
     , idx = 0
     , stream
@@ -57489,11 +57489,11 @@ function tokenize() {
     } else if(c === ')') {
       --depth
     }
-    
+
     if(!depth) {
       gathered.pop()
       stream.queue({
-          type: rhs 
+          type: rhs
         , data: lhs + '(' + gathered.join('') + ')'
       })
 
@@ -57502,7 +57502,7 @@ function tokenize() {
       gathered.length = 0
     }
 
-    return 
+    return
   }
 
   function state_attr_start() {
@@ -57591,7 +57591,7 @@ function tokenize() {
     lhs = rhs = cmp = null
     gathered.length = 0
 
-    return 
+    return
   }
 
   function state_gather(quietly) {
@@ -60733,7 +60733,7 @@ Writable.prototype.write = function(chunk, encoding, cb) {
     chunk = new Buffer(chunk);
   if (isArrayBuffer(chunk) && typeof Uint8Array !== 'undefined')
     chunk = new Buffer(new Uint8Array(chunk));
-  
+
   if (Buffer.isBuffer(chunk))
     encoding = 'buffer';
   else if (!encoding)
@@ -62934,7 +62934,7 @@ exports.transformComposer = function() {
 
 /*
  Generate equally spaced ticks in a range at sensible positions.
- 
+
  @param min/max - Minimum and maximum of range
  @param n - Desired number of ticks in range
  @param unit - Base unit of scale (e.g. 1 or π).
@@ -63925,7 +63925,7 @@ THREE.Bootstrap.registerPlugin('mathbox', {
  - Attributes can be computed from both public or private expressions with .bind(key, false/true)
  - Expressions are time-dependent, can be time-travelled with .evaluate()
  - This enables continous simulation and data logging despite choppy animation updates
- 
+
   Actual type and trait definitions are injected from Primitives
  */
 var Attributes, Data, shallowCopy;
@@ -64566,7 +64566,7 @@ language = null;
 /*
 
   Model that wraps a root node and its children.
-  
+
   Monitors adds, removals and ID/class changes.
   Enables CSS selectors, both querying and watching.
 
@@ -65440,7 +65440,7 @@ PrimitiveFactory = (function() {
   };
 
   PrimitiveFactory.prototype.make = function(type, options, binds) {
-    var klass, node, primitive;
+    var klass, node;
     if (options == null) {
       options = {};
     }
@@ -65451,8 +65451,12 @@ PrimitiveFactory = (function() {
     if (klass == null) {
       throw new Error("Unknown primitive class `" + type + "`");
     }
+
+    if (type == "dom") {
+      console.log("making " + type);
+    }
     node = new klass.model(type, klass.defaults, options, binds, klass, this.context.attributes);
-    primitive = new klass(node, this.context, this.helpers);
+    new klass(node, this.context, this.helpers);
     return node;
   };
 
@@ -69741,23 +69745,23 @@ Join = (function(superClass) {
 
     /*
     Calculate index transform
-    
+
     order: wxyz
     length: 3
     overlap: 1
-    
+
     axis: w
     index: 0
     rest: 00xy
-    
+
     axis: x
     index: 1
     rest: w00y
-    
+
     axis: y
     index: 2
     rest: wx00
-    
+
     axis: z
     index: 3
     rest: wxy0
@@ -70972,29 +70976,29 @@ Split = (function(superClass) {
 
     /*
     Calculate index transform
-    
+
     order: wxyz
     length: 3
     overlap: 1
-    
+
     axis: w
     index: 0
     split: wx
     rest:  0yz0
            s
-    
+
     axis: x
     index: 1
     split: xy
     rest:  w0z0
             s
-    
+
     axis: y
     index: 2
     split: yz
     rest:  wx00
              s
-    
+
     axis: z
     index: 3
     split: z0
@@ -71538,8 +71542,11 @@ DOM = (function(superClass) {
     });
     this.dom = this._overlays.make('dom');
     this.dom.hint(items * width * height * depth * 2);
-    this.readback.setCallback(this.emitter = this.callback(this.bind.html.nodes()));
-    return this._helpers.visible.make();
+    console.log("setting callback: ", this.bind.html.nodes);
+    console.log("setting dom: ", this.dom);
+    this.emitter = this.callback(this.bind.html.nodes());
+    this.readback.setCallback(this.emitter);
+    this._helpers.visible.make();
   };
 
   DOM.prototype.unmake = function() {
@@ -71552,7 +71559,7 @@ DOM = (function(superClass) {
       this.active = {};
     }
     this._helpers.bind.unmake();
-    return this._helpers.visible.unmake();
+    this._helpers.visible.unmake();
   };
 
   DOM.prototype.update = function() {
@@ -71563,7 +71570,7 @@ DOM = (function(superClass) {
     if (this.props.visible) {
       this.readback.update((ref = this.root) != null ? ref.getCamera() : void 0);
       this.readback.post();
-      return this.readback.iterate();
+      this.readback.iterate();
     }
   };
 
@@ -71571,7 +71578,7 @@ DOM = (function(superClass) {
     if (this.readback == null) {
       return;
     }
-    return this.dom.render(this.isVisible ? this.emitter.nodes() : []);
+    this.dom.render(this.isVisible ? this.emitter.nodes() : []);
   };
 
   DOM.prototype.callback = function(data) {
@@ -71596,7 +71603,11 @@ DOM = (function(superClass) {
     className = null;
     strideI = strideJ = strideK = 0;
     colorString = '';
+
+
     f = function(x, y, z, w, i, j, k, l) {
+      // samlog gah, x y z are the key!!
+      // console.log(x, y, z, w, i, j, k, l);
       var a, alpha, children, clip, flatZ, index, iw, ox, oy, props, ref, s, scale, v, xx, yy;
       index = l + strideI * i + strideJ * j + strideK * k;
       children = data[index];
@@ -71626,6 +71637,9 @@ DOM = (function(superClass) {
         v = styles[k];
         props.style[k] = v;
       }
+
+      // HELL yes, we are getting real numbers here and NaN in the busted versions.
+      // console.log(props.style.transform);
       a = attr.value;
       if (a != null) {
         s = a.style;
@@ -71642,6 +71656,7 @@ DOM = (function(superClass) {
           }
         }
       }
+
       props.className += ' ' + ((ref = a != null ? a.className : void 0) != null ? ref : 'mathbox-label');
       return nodes.push(el('div', props, children));
     };
@@ -71679,6 +71694,8 @@ DOM = (function(superClass) {
   };
 
   DOM.prototype.resize = function() {
+    // samlog
+    // console.log("HI");
     var depth, height, htmlDims, items, pointDims, sI, sJ, sK, width;
     if (this.readback == null) {
       return;
@@ -77182,7 +77199,7 @@ Atlas = (function(superClass) {
     if (width > 2048 && height > 2048) {
       console.warn("Giant text atlas " + width + "x" + height + ".");
     } else {
-      console.info("Resizing text atlas " + width + "x" + height + ".");
+      console.info("Resizing text atlas! " + width + "x" + height + ".");
     }
     this.texture.resize(width, height);
     this.width = width;
@@ -77938,12 +77955,14 @@ Readback = (function(superClass) {
   }
 
   Readback.prototype.build = function(options) {
+    console.log("never getting called: ", options);
     var channels, depth, encoder, h, height, indexer, isIndexed, items, map, ref, sampler, stpq, stretch, w, width;
     map = options.map;
     indexer = options.indexer;
     isIndexed = (indexer != null) && !indexer.empty();
     ref = this, items = ref.items, width = ref.width, height = ref.height, depth = ref.depth, stpq = ref.stpq;
     sampler = map;
+    console.log("sampler: ", sampler);
     if (isIndexed) {
       this._adopt({
         indexModulus: {
@@ -78026,6 +78045,9 @@ Readback = (function(superClass) {
       this.floats = new Float32Array(this.bytes.buffer);
     }
     this.data = this.isFloat ? this.floats : this.bytes;
+    // this.floats = null;
+
+    console.log("sampler: ", sampler.link().code);
     this.streamer = this.generate(this.data);
     this.active = {
       items: 0,
@@ -78055,6 +78077,8 @@ Readback = (function(superClass) {
   };
 
   Readback.prototype.generate = function(data) {
+    // this is where streamer gets assigned. is data even the same here?? check
+    // that the inputs are the same.
     return Util.Data.getStreamer(data, this.samples, 4, this.items);
   };
 
@@ -78091,7 +78115,11 @@ Readback = (function(superClass) {
 
   Readback.prototype.post = function() {
     this.renderer.setRenderTarget(this.byteMemo.target.write);
-    return this.gl.readPixels(0, 0, this.rect.w, this.rect.h, gl.RGBA, gl.UNSIGNED_BYTE, this.bytes);
+//    console.log(this.gl);
+    this.gl.readPixels(0, 0,
+                       this.rect.w, this.rect.h, this.gl.RGBA,
+                       this.gl.UNSIGNED_BYTE, this.bytes);
+    // this is what is working here but now there.
   };
 
   Readback.prototype.readFloat = function(n) {
@@ -78154,6 +78182,8 @@ Readback = (function(superClass) {
     limit = n * m * p * (o - padZ);
     if (!this.isIndexed) {
       callback = emit;
+
+      // this.bytes is getting modified all OVER!
       emit = function(x, y, z, w) {
         return callback(x, y, z, w, i, j, k, l);
       };
@@ -79313,16 +79343,16 @@ ClipGeometry = require('./clipgeometry');
 /*
 (flat) Triangle fans arranged in items, columns and rows
 
-+-+     +-+     +-+     +-+     
-|\\\    |\\\    |\\\    |\\\    
-+-+-+   +-+-+   +-+-+   +-+-+   
++-+     +-+     +-+     +-+
+|\\\    |\\\    |\\\    |\\\
++-+-+   +-+-+   +-+-+   +-+-+
 
-+-+     +-+     +-+     +-+     
-|\\\    |\\\    |\\\    |\\\    
-+-+-+   +-+-+   +-+-+   +-+-+   
++-+     +-+     +-+     +-+
+|\\\    |\\\    |\\\    |\\\
++-+-+   +-+-+   +-+-+   +-+-+
 
-+-+     +-+     +-+     +-+     
-|\\\    |\\\    |\\\    |\\\    
++-+     +-+     +-+     +-+
+|\\\    |\\\    |\\\    |\\\
 +-+-+   +-+-+   +-+-+   +-+-+
  */
 
@@ -79862,16 +79892,16 @@ ClipGeometry = require('./clipgeometry');
 /*
 Triangle strips arranged in items, columns and rows
 
-+--+--+--+  +--+--+--+  +--+--+--+  +--+--+--+  
-| /| /| /   | /| /| /   | /| /| /   | /| /| / 
-+--+--+/    +--+--+/    +--+--+/    +--+--+/  
++--+--+--+  +--+--+--+  +--+--+--+  +--+--+--+
+| /| /| /   | /| /| /   | /| /| /   | /| /| /
++--+--+/    +--+--+/    +--+--+/    +--+--+/
 
-+--+--+--+  +--+--+--+  +--+--+--+  +--+--+--+  
-| /| /| /   | /| /| /   | /| /| /   | /| /| / 
-+--+--+/    +--+--+/    +--+--+/    +--+--+/  
++--+--+--+  +--+--+--+  +--+--+--+  +--+--+--+
+| /| /| /   | /| /| /   | /| /| /   | /| /| /
++--+--+/    +--+--+/    +--+--+/    +--+--+/
 
-+--+--+--+  +--+--+--+  +--+--+--+  +--+--+--+  
-| /| /| /   | /| /| /   | /| /| /   | /| /| / 
++--+--+--+  +--+--+--+  +--+--+--+  +--+--+--+
+| /| /| /   | /| /| /   | /| /| /   | /| /| /
 +--+--+/    +--+--+/    +--+--+/    +--+--+/
  */
 
@@ -83459,7 +83489,7 @@ prettyPrint = function(markup, level) {
     level = 'info';
   }
   markup = prettyMarkup(markup);
-  return console[level].apply(console, markup);
+  // return console[level].apply(console, markup);
 };
 
 prettyMarkup = function(markup) {
@@ -83857,7 +83887,7 @@ exports.transformComposer = function() {
 
 /*
  Generate equally spaced ticks in a range at sensible positions.
- 
+
  @param min/max - Minimum and maximum of range
  @param n - Desired number of ticks in range
  @param unit - Base unit of scale (e.g. 1 or π).
@@ -84235,6 +84265,10 @@ mount = function(el, parent, index) {
       ref5 = el.props;
       for (key in ref5) {
         value = ref5[key];
+        if (key == "children") {
+          // samlog
+          // console.log("calling: " + key + ", " + value);
+        }
         set(node, key, value);
       }
     }
@@ -84315,8 +84349,17 @@ set = function(node, key, value, orig) {
     }
     return;
   }
+  if (key == "children") {
+    // samlog
+    // console.log("HI!");
+  }
   if (node[key] != null) {
+    if (key == "children") {
+      // samlog
+      // console.log("setting: " + node[key] + value);
+    }
     node[key] = value;
+
     return;
   }
   if (node instanceof Node) {
@@ -85465,7 +85508,7 @@ module.exports = Join;
 },{"./block":185}],191:[function(require,module,exports){
 
 /*
-  Cache decorator  
+  Cache decorator
   Fetches snippets once, clones for reuse
   Inline code is hashed to avoid bloat
  */
@@ -85509,7 +85552,7 @@ Visualize = require('../visualize');
 
 /*
   Chainable factory
-  
+
   Exposes methods to build a graph incrementally
  */
 
@@ -86003,12 +86046,12 @@ exports.hash = require('./hash');
 
 /*
   Snippet library
-  
+
   Takes:
     - Hash of snippets: named library
     - (name) -> getter: dynamic lookup
     - nothing:          no library, only pass in inline source code
-  
+
   If 'name' contains any of "{;(#" it is assumed to be direct GLSL code.
  */
 var library;
@@ -88030,7 +88073,7 @@ debug = false;
 
 /*
   Program linkage layout
-  
+
   Entry points are added to its dependency graph
   Callbacks are linked either with a go-between function
   or a #define if the signatures are identical.
@@ -88107,7 +88150,7 @@ Priority = require('./priority');
 
 /*
  Callback linker
- 
+
  Imports given modules and generates linkages for registered callbacks.
 
  Builds composite program with single module as exported entry point
@@ -88300,13 +88343,13 @@ assemble = require('./assemble');
 
 /*
   Program assembly model
-  
+
   Snippets are added to its queue, registering calls and code includes.
   Calls are de-duped and scheduled at the earliest point required for correct data flow.
-  
+
   When assemble() is called, it builds a main() function to
   execute all calls in final order.
-  
+
   The result is a new instance of Snippet that acts as if it
   was parsed from the combined source of the component
   nodes.
@@ -89149,7 +89192,7 @@ prefix('(', function() {
   this.type = 'group'
   this.children = [expression(0)]
   advance(')')
-  return this 
+  return this
 })
 prefix('++')
 prefix('--')
@@ -89206,7 +89249,7 @@ function symbol(id, binding_power) {
     }
   } else {
     sym = Object.create(original_symbol)
-    sym.id = id 
+    sym.id = id
     sym.lbp = binding_power
     symbol_table[id] = sym
   }
@@ -89390,7 +89433,7 @@ var token_map = {
 }
 
 // map of stmt types to human
-var stmt_type = _ = [ 
+var stmt_type = _ = [
     'ident'
   , 'stmt'
   , 'stmtlist'
@@ -89525,7 +89568,7 @@ function parser() {
       case QUANTIFIER: parse_quantifier(); break
     }
   }
-  
+
   function end(tokens) {
     if(arguments.length) {
       write(tokens)
@@ -89587,7 +89630,7 @@ function parser() {
       console.log(pad, '/'+_node.type)
     }
 
-    if(check.length) { 
+    if(check.length) {
       if(typeof check[0] === 'function') {
         emit = check[0](_node)
       } else if(okay !== undefined) {
@@ -89597,8 +89640,8 @@ function parser() {
       emit = true
     }
 
-    if(emit) stream.emit('data', _node) 
-  
+    if(emit) stream.emit('data', _node)
+
     node = _node.parent
     return _node
   }
@@ -89624,7 +89667,7 @@ function parser() {
         return
         default:
           state.unshift(stmt())
-        return 
+        return
       }
     }
   }
@@ -89639,7 +89682,7 @@ function parser() {
     }
     switch(token.type) {
       case 'eof': return state.shift()
-      case 'keyword': 
+      case 'keyword':
         switch(token.data) {
           case 'for': return state.unshift(forstmt());
           case 'if': return state.unshift(ifstmt());
@@ -89698,7 +89741,7 @@ function parser() {
           state.unshift(keyword())
           return Advance
         } else {
-          return unexpected('`invariant` is not allowed here') 
+          return unexpected('`invariant` is not allowed here')
         }
       } else {
         state.fake(mknode(PLACEHOLDER, {data: '', position: token.position}))
@@ -89709,10 +89752,10 @@ function parser() {
     function storage_or_not() {
       if(is_storage(token)) {
         if(stmt.flags & DECL_ALLOW_STORAGE) {
-          state.unshift(keyword()) 
+          state.unshift(keyword())
           return Advance
         } else {
-          return unexpected('storage is not allowed here') 
+          return unexpected('storage is not allowed here')
         }
       } else {
         state.fake(mknode(PLACEHOLDER, {data: '', position: token.position}))
@@ -89723,10 +89766,10 @@ function parser() {
     function parameter_or_not() {
       if(is_parameter(token)) {
         if(!(stmt.flags & DECL_NO_INOUT)) {
-          state.unshift(keyword()) 
+          state.unshift(keyword())
           return Advance
         } else {
-          return unexpected('parameter is not allowed here') 
+          return unexpected('parameter is not allowed here')
         }
       } else {
         state.fake(mknode(PLACEHOLDER, {data: '', position: token.position}))
@@ -89763,7 +89806,7 @@ function parser() {
       if(lookup) {
         state.fake(Object.create(lookup))
         tokens.shift()
-        return Advance  
+        return Advance
       }
       return unexpected('expected user defined type, struct or keyword, got '+token.data)
     }
@@ -89791,7 +89834,7 @@ function parser() {
       }
 
       stmt.collected_name = tokens.shift()
-      return Advance      
+      return Advance
     }
 
     function maybe_lparen() {
@@ -89799,7 +89842,7 @@ function parser() {
         tokens.unshift(stmt.collected_name)
         delete stmt.collected_name
         state.unshift(fn())
-        return stmt.stage + 2 
+        return stmt.stage + 2
       }
       return Advance
     }
@@ -89815,7 +89858,7 @@ function parser() {
       return state.shift()
     }
   }
-  
+
   function parse_decllist() {
     // grab ident
 
@@ -89953,11 +89996,11 @@ function parser() {
     n.expecting = [].slice.call(arguments)
     return n
   }
-  
+
   function keyword(default_value) {
     var t = token
     if(default_value) {
-      t = {'type': '(implied)', data: '(default)', position: t.position} 
+      t = {'type': '(implied)', data: '(default)', position: t.position}
     }
     return mknode(KEYWORD, t, node)
   }
@@ -89974,7 +90017,7 @@ function parser() {
 
   function assert(type, data) {
     return 1,
-      assert_null_string_or_array(type, token.type) && 
+      assert_null_string_or_array(type, token.type) &&
       assert_null_string_or_array(data, token.data)
   }
 
@@ -90011,7 +90054,7 @@ function parser() {
       if(result === Advance) return ++current.stage
       if(result === undefined) return
       current.stage = result
-    } 
+    }
   }
 
   function advance(op, t) {
@@ -90101,13 +90144,13 @@ function parser() {
     parse_precision =
         stative(
           function() { return tokens.shift(), Advance }
-        , function() { 
+        , function() {
             return assert(
             'keyword', ['lowp', 'mediump', 'highp']
-            ) && (state.unshift(keyword()), Advance) 
+            ) && (state.unshift(keyword()), Advance)
           }
         , function() { return (state.unshift(keyword()), Advance) }
-        , function() { return state.shift() } 
+        , function() { return state.shift() }
         )
 
     parse_quantifier =
@@ -90118,7 +90161,7 @@ function parser() {
         , function() { return state.shift() }
         )
 
-    parse_forloop = 
+    parse_forloop =
         stative(
           advance('for', 'keyword')
         , advance('(')
@@ -90128,7 +90171,7 @@ function parser() {
               if(!(lookup = state.scope.find(token.data))) {
                 lookup = state.create_node()
               }
-             
+
               if(lookup.parent.type === 'struct') {
                 return state.unshift(decl(DECL_STATEMENT)), Advance
               }
@@ -90148,7 +90191,7 @@ function parser() {
         , popstmt()
         )
 
-    parse_if = 
+    parse_if =
         stative(
           advance('if', 'keyword')
         , advance('(')
@@ -90173,7 +90216,7 @@ function parser() {
             if(token.data === ';') return Advance
             return state.unshift(expr(';')), Advance
           }
-        , function() { tokens.shift(), popstmt()() } 
+        , function() { tokens.shift(), popstmt()() }
         )
 
     parse_whileloop =
@@ -90188,7 +90231,7 @@ function parser() {
         , popstmt()
         )
 
-    parse_dowhileloop = 
+    parse_dowhileloop =
       stative(
         advance('do', 'keyword')
       , maybe_stmtlist(3)
@@ -90225,7 +90268,7 @@ function parser() {
       , advance('(')
       , function() { return state.unshift(fnargs()), Advance }
       , advance(')')
-      , function() { 
+      , function() {
           // forward decl
           if(token.data === ';') {
             return state.scope.exit(), state.shift(), state.shift()
@@ -90235,7 +90278,7 @@ function parser() {
       , advance('{')
       , advance_stmtlist()
       , advance('}')
-      , function() { state.scope.exit(); return Advance } 
+      , function() { state.scope.exit(); return Advance }
       , function() { return state.shift(), state.shift(), state.shift() }
       )
 
@@ -90339,8 +90382,8 @@ var literals = require('./lib/literals')
   , builtins = require('./lib/builtins')
 
 var NORMAL = 999          // <-- never emitted
-  , TOKEN = 9999          // <-- never emitted 
-  , BLOCK_COMMENT = 0 
+  , TOKEN = 9999          // <-- never emitted
+  , BLOCK_COMMENT = 0
   , LINE_COMMENT = 1
   , PREPROCESSOR = 2
   , OPERATOR = 3
@@ -90350,7 +90393,7 @@ var NORMAL = 999          // <-- never emitted
   , BUILTIN = 7
   , KEYWORD = 8
   , WHITESPACE = 9
-  , EOF = 10 
+  , EOF = 10
   , HEX = 11
 
 var map = [
@@ -90373,7 +90416,7 @@ function tokenize() {
 
   var i = 0
     , total = 0
-    , mode = NORMAL 
+    , mode = NORMAL
     , c
     , last
     , content = []
@@ -90407,7 +90450,7 @@ function tokenize() {
     while(c = input[i], i < len) switch(mode) {
       case BLOCK_COMMENT: i = block_comment(); break
       case LINE_COMMENT: i = line_comment(); break
-      case PREPROCESSOR: i = preprocessor(); break 
+      case PREPROCESSOR: i = preprocessor(); break
       case OPERATOR: i = operator(); break
       case INTEGER: i = integer(); break
       case HEX: i = hex(); break
@@ -90419,7 +90462,7 @@ function tokenize() {
 
     total += i
     input = input.slice(i)
-  } 
+  }
 
   function end(chunk) {
     if(content.length) {
@@ -90532,7 +90575,7 @@ function tokenize() {
 
     if(c === '.' && content.length) {
       while(determine_operator(content));
-      
+
       mode = FLOAT
       return i
     }
@@ -90563,13 +90606,13 @@ function tokenize() {
 
     do {
       idx = operators.indexOf(buf.slice(0, buf.length + j).join(''))
-      if(idx === -1) { 
+      if(idx === -1) {
         j -= 1
         k -= 1
         if (k < 0) return 0
         continue
       }
-      
+
       token(operators[idx])
 
       start += operators[idx].length
@@ -90587,7 +90630,7 @@ function tokenize() {
 
     content.push(c)
     last = c
-    return i + 1    
+    return i + 1
   }
 
   function integer() {
